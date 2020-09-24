@@ -1,8 +1,8 @@
 <template>
   <div>
-    <transition-group name="list" tag="ul">
+    <ul>
       <li
-        v-for="(item, index) in propsData"
+        v-for="(item, index) in todoItems"
         v-bind:key="item.item"
         class="shadow"
       >
@@ -18,19 +18,42 @@
           ><i class="fas fa-trash"></i
         ></span>
       </li>
-    </transition-group>
+    </ul>
   </div>
 </template>
 
 <script>
 export default {
-  props: ['propsData'],
+  data: function() {
+    return {
+      todoItems: [],
+    };
+  },
+  created: function() {
+    for (let i = 0; i < localStorage.length; i++) {
+      if (localStorage.key(i) !== 'loglevel:webpack-dev-server') {
+        this.todoItems.push(
+          JSON.parse(localStorage.getItem(localStorage.key(i)))
+        );
+      }
+    }
+  },
   methods: {
-    removeItem(item, index) {
-      this.$emit('deleteTodoItem', item, index);
+    removeItem: function(item, index) {
+      localStorage.removeItem(item);
+      this.todoItems.splice(index, 1);
     },
-    toggleComplate(item, index) {
-      this.$emit('toggleTodoItem', item, index);
+    toggleComplate: function(item, index) {
+      console.log(item, index);
+      item.complated = !item.complated;
+      // 로컬 스토리지의 데이터를 갱신
+      localStorage.removeItem(item.item);
+      localStorage.setItem(item.item, JSON.stringify(item));
+    },
+  },
+  watch: {
+    todoItems: function() {
+      console.log('변경되었음');
     },
   },
 };
@@ -45,18 +68,17 @@ ul {
 }
 li {
   display: flex;
-  max-width: 370px;
   min-height: 50px;
   height: 50px;
   line-height: 50px;
-  margin: 0.5rem auto;
+  margin: 0.5rem 0;
   padding: 0 0.9rem;
   background: #fff;
   border-radius: 5px;
 }
 
 .checkBtn {
-  line-height: 50px;
+  line-height: 45px;
   color: #62acde;
   margin-right: 5px;
 }
@@ -73,16 +95,5 @@ li {
 .textComplated {
   text-decoration: line-through;
   color: #b3adad;
-}
-
-/*리스트 트랜지션*/
-
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.6s;
-}
-.list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
-  opacity: 0;
-  transform: translateY(30px);
 }
 </style>
